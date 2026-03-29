@@ -1,0 +1,695 @@
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}:root {
+    --primary: #424242;
+    --accent: #424242;
+    --bg: #DCDCDC;
+} body {
+    font-family: "Noto Sans Thai", sans-serif;
+    margin: 0; /* ลบขอบขาวรอบเว็บ */
+    overflow: hidden; /* ห้ามมี Scrollbar เพราะเราเน้นให้ของวิ่งในจอ */
+    background-color: var(--bg);
+    border: 5px solid white; /* ความหนาของขอบ 20px */ 
+    height: 100vh;            /* บังคับความสูงให้พอดีจอ */
+    border: 10px solid #222; 
+    outline: 5px solid #444; 
+    outline-offset: -30px;    /* ดันเส้นด้านในเข้ามา */
+    box-sizing: border-box;
+    height: 100vh;
+    overscroll-behavior-y: none; /* ป้องกันการลากจอนิ้วลงเพื่อรีเฟรช */
+    touch-action: none; /* ป้องกันการซูมหรือเลื่อนจอขณะวาดรูปใน Modal */
+}
+
+/*สร้างพื้นหลัง*/
+.gallery-hall {
+    position: relative;
+    height: 100vh; /* สูงเต็มหน้าจอ */
+    background-image: url('bg1.jpg'); /* ใส่ชื่อไฟล์ภาพของคุณ */
+    background-size: cover;      /* ปรับขนาดภาพให้ครอบคลุมพื้นที่ทั้งหมด */
+    background-position: center; /* จัดวางภาพให้อยู่ตรงกลาง */
+    background-repeat: no-repeat; /* ไม่ให้ภาพวนซ้ำ */
+    background: linear-gradient(180deg, #ffffff 0%, #e9ecef 100%); /* ไล่เฉดสีขาวไปเทาอ่อน */
+}
+
+.welcome-text {
+    position: absolute;    /* แยกตัวออกมาเพื่อกำหนดตำแหน่งอิสระ */
+    top: 20%;             /* ดันลงมาจากขอบบน 50% */
+    left: 50%;            /* ดันออกมาจากขอบซ้าย 50% */
+    transform: translate(-50%, -50%); /* ดึงตัวกลับมาครึ่งหนึ่งของขนาดตัวเองเพื่อให้กลางเป๊ะ */
+    text-align: center;    /* จัดตัวอักษรให้อยู่ตรงกลางบรรทัด */
+    width: 100%;          /* ขยายความกว้างให้เต็มเพื่อรองรับข้อความยาวๆ */
+    z-index: 10;          /* ให้ลอยทับเส้นนิทรรศการ (ซึ่งมี z-index: 5) */
+    pointer-events: none; /* เพื่อให้เรายังคลิกสิ่งที่อยู่ข้างหลังข้อความได้ */
+    text-shadow: 0 2px 10px rgba(255,255,255,0.8);
+}
+
+/* ค้นหา .welcome-text h1 (ประมาณบรรทัดที่ 20-25) */
+.welcome-text h1 {
+    font-size: 2.5rem;   /* ปรับจาก 2.5 เป็น 3.5 (ใหญ่สะใจ) */
+    font-weight: 800;   /* เพิ่มความหนาเป็นพิเศษ */
+    margin-bottom: 10px;
+}
+
+.welcome-text p {
+    font-size: 1.2rem;   /* ปรับคำบรรยายให้น่าอ่านขึ้น */
+    color: #636e72;
+}
+
+/*สร้างเส้นสีเข้มพาดกลางหน้าจอ*/
+.exhibition-line {
+    position: absolute;
+    width: 100%;
+    height: 1px; /* เส้นหนา 4px */
+    top: 40%; 
+    background: #444;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* เงาให้เส้นดูมีมิติ */
+    z-index: 5; /* ให้อยู่เหนือพื้นหลัง */
+}
+
+.art-track {
+    display: flex;       /* จัดรูปภาพเรียงกันแนวนอน */
+    gap: 80px;           /* ระยะห่างระหว่างรูป 80px */
+    position: absolute;
+    left: 0;
+    top: 0px;
+    white-space: nowrap; /* ห้ามรูปขึ้นบรรทัดใหม่เด็ดขาด */
+    animation: scrollTrack 20s linear infinite; /* สั่งให้วิ่งวนไป 20 วินาที */
+}
+
+@keyframes scrollTrack {
+    0% { transform: translateX(-100%); }   /* เริ่มวิ่งจากนอกจอฝั่งซ้าย */
+    100% { transform: translateX(100vw); } /* วิ่งไปจนพ้นจอฝั่งขวา */
+}
+
+/*เป็นกล่องที่รวมทั้ง "เส้นเชือก", "กรอบรูป" และ "ชื่อเจ้าของงาน"*/
+.art-container {
+    flex-shrink: 0; /* ป้องกันไม่ให้รูปลีบแบน */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* จัดรูปกับชื่อให้อยู่ตรงกลางกัน */
+    position: relative;
+    padding-top: 35px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/*กำหนดจุดเริ่มต้น (ซ้ายสุด) ไปยังจุดจบ (ขวาสุดที่ 110%)*/
+@keyframes slideGallery {
+    from { left: -300px; /* อยู่นอกจอฝั่งซ้าย */
+           opacity: 0;
+         }
+    10% { opacity: 1; /* ค่อยๆ ปรากฏตัวออกมา */}
+    to { left: 100%; /* วิ่งไปจนสุดจอฝั่งขวา */}
+        }
+
+/*เชือกที่แขวนรูป*/
+.art-container::before {
+    content: '';
+    position: absolute;
+    top: 0px; 
+    width: 2px;
+    height: 35px;
+    background: #666;
+    z-index: -1;
+} 
+
+/*ออกแบบให้ดูเหมือนกรอบรูปจริง*/
+.art-frame {
+    width: 180px;         /* ปรับความกว้างให้ชัดขึ้น */
+    height: 240px;        /* ปรับให้เป็นสี่เหลี่ยมจัตุรัส (หรือตามขนาด Canvas ของคุณ) */
+    background: white;
+    border: 8px solid #222; /* เพิ่มความหนาขอบให้ดูเป็นกรอบจริงๆ */
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    display: flex;         /* เพิ่มเพื่อให้รูปอยู่กลาง */
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;      /* ตัดส่วนเกินของรูปที่ล้นขอบออก */
+    transition: 0.3s;
+    position: relative;
+}
+
+.click-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 204, 51, 0.9); /* สีทองจางๆ */
+    color: #1a1a1a;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.art-container:hover .click-hint {
+    opacity: 1;
+    transform: translate(-50%, -60%); /* ขยับขึ้นนิดนึงเวลา hover */
+}
+
+/*เมื่อเราเอาเมาส์ไปวาง รูปจะขยายใหญ่ขึ้นนิดหน่อย*/
+.art-frame:hover { 
+    transform: translateY(-10px) scale(1.05); 
+    z-index: 100; 
+}
+
+/*ส่วนนี้คือป้ายชื่อที่ติดไว้ใต้กรอบรูป*/
+.art-info {
+    margin-top: 10px;
+    background: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.85rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-top: 3px solid var(--accent);
+    font-family: "Noto Sans Thai", sans-serif;
+    line-height: 1.4;
+    color: #4a3728;
+}
+
+/* จะแสดงผลเมื่อกดปุ่มเท่านั้น */
+.modal-exhibition {
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    z-index: 100;
+}
+
+/*เป็นกล่องสีขาวที่เด้งขึ้นมากลางจอ*/
+.modal-content {
+    background: white;
+    width: 92%;
+    max-width: 400px;
+    margin: 10px auto;
+    padding: 20px;
+    border-radius: 25px;
+    max-height: 92vh;
+    position: relative;
+    overflow-y: auto;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+    touch-action: auto;
+}
+
+/*จัดวางกระดานวาดรูปกับเครื่องมือเลือกสี*/
+.studio-container { 
+    display: flex; 
+    gap: 20px; 
+    justify-content: center; 
+    flex-wrap: wrap; 
+}
+
+/*เมื่อเปิดหน้าต่างขึ้นมา นี่คือการตั้งค่าเครื่องมือวาดภาพ*/
+/* กรอบรอบ Canvas */
+.canvas-wrapper { 
+    border: 3px solid #333; /* ปรับให้หนาขึ้นเหมือนกรอบรูป */
+    border-radius: 15px;    /* ปรับให้มนสวยขึ้น */
+    line-height: 0;  
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); /* เพิ่มเงาให้ดูเหมือนลอยออกมา */
+    background: white;
+    width: 100%;
+    max-width: 260px; /* คุมขนาดไว้ */
+    margin: 0 auto;
+}
+
+#drawCanvas {
+    width: 100% !important; /* บังคับให้กว้างพอดี Wrapper */
+    height: auto !important;
+}
+
+/* ย่อขนาดตัวหนังสือพาดหัวบนมือถือ */
+@media (max-width: 600px) {
+    .welcome-text h1 {
+        font-size: 1.8rem;
+    }
+    .welcome-text p {
+        font-size: 0.9rem;
+        padding: 0 20px;
+    }
+    .btn-action {
+        padding: 15px 25px;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+canvas {
+    display: block;
+    border-radius: 5px;
+}
+
+.color-palette { 
+    display: flex; 
+    gap: 5px; 
+    justify-content: center;
+    padding: 8px;
+    background: #f0f0f0;
+    border-radius: 30px; /* ทรงแคปซูล */
+    margin-bottom: 15px;
+}
+
+.palette-row {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 15px; /* ระยะห่างระหว่าง ปากกา กับ สีถม */
+    width: 100%;
+    margin-top: 5px;
+}
+/* จัดแต่ละคอลัมน์ (ปากกา/สีถม) */
+.palette-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.palette-item span {
+    font-size: 0.7rem;
+    color: #888;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.color-palette {
+    display: flex;
+    gap: 4px;
+    background: #f8f9fa;
+    padding: 4px;
+    border-radius: 30px;
+    border: 1px solid #eee;
+}
+
+/*ปรับแต่งปุ่มเลือกสี*/
+.color-palette button { 
+    width: 24px; 
+    height: 24px; 
+    border-radius: 50%; 
+    border: 2px solid white; /* ขอบขาวให้ดูเหมือนก้อนสี */
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.1s;
+}
+
+.color-palette button:hover { 
+    transform: scale(1.2); /* ขยายใหญ่ขึ้น */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.color-palette button:active {
+    transform: scale(0.9);
+}
+/* --- ปุ่มล้างหน้าจอ --- */
+.btn-tool-clear {
+    display: block;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid #ff7675;
+    color: #ff7675;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-tool-clear:hover {
+    background: #ff7675;
+    color: white;
+}
+
+/*ปุ่มนี้คือปุ่มรูปเครื่องหมายบวก (+) ที่มุมจอครับ*/
+.btn-action {
+    position: fixed;  /*ล็อกปุ่มไว้กับหน้าจอ*/
+    bottom: 40px; 
+    right: 40px;
+    background: var(--primary); 
+    color: white; 
+    padding: 25px 40px;
+    border-radius: 50px; 
+    border: none; 
+    font-weight: bold; 
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    z-index: 99;
+}
+
+/*ส่วน step 2 */
+.input-group { 
+    margin-top: 25px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+    background: #ffffff; /* พื้นหลังขาวสะอาด */
+    padding: 30px; 
+    border-radius: 20px; /* ขอบมนดูเป็นมิตร */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05); /* เงาฟุ้งๆ */
+    border: 1px solid #f0f0f0;
+}
+
+.input-group input { 
+    padding: 15px 20px; /* เพิ่มพื้นที่ให้ตัวอักษรไม่อึดอัด */
+    border: 1.5px solid #eee; 
+    border-radius: 12px; 
+    font-size: 1rem;
+    background: #fafafa;
+    transition: 0.3s; /* เวลาคลิกแล้วจะค่อยๆ เปลี่ยนสี */
+}
+
+.input-group input:focus {
+    border-color: var(--accent);
+    background: #fff;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+}
+
+/*ปุ่มสีฟ้าสดใสที่อยู่ในหน้าต่าง Modal*/
+.btn-submit {
+    width: 100%; 
+    margin-top: 20px; 
+    padding: 18px;
+    background: var(--accent); 
+    color: white; 
+    border: none;
+    border-radius: 15px; 
+    font-weight: bold; 
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-submit:hover {
+    background: #2980b9;
+    transform: translateY(-3px); /* เวลากดแล้วจะเด้งขึ้นนิดๆ */
+    box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3);
+}
+
+/*ปุ่มรูปตว ✕ เล็ก ๆ มุมบนขวา*/
+.btn-close-modal {
+    position: absolute; 
+    right: 15px; 
+    top: 15px; 
+    background: none; 
+    border: none; 
+    font-size: 20px; 
+    cursor: pointer;
+}
+
+/* กล่องหลักสำหรับรูปพื้นหลัง */
+.background-gallery {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1; /* อยู่หลังสุด (ต่ำกว่า .welcome-text และ .exhibition-line) */
+}
+
+/* กำหนดหน้าตารูปภาพพื้นหลังแต่ละใบ */
+.bg-art-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    opacity: 0; /* เริ่มต้นที่หายตัว */
+    z-index: 1;
+    /* สั่งให้เล่น Animation: ปรากฏ -> ค้าง -> หายไป */
+    /* 10s คือระยะเวลาแสดงผลทั้งหมด สามารถปรับเพิ่ม/ลดได้ */
+    animation: fadeBackAndForth 10s ease-in-out forwards;
+}
+
+@keyframes fadeBackAndForth {
+    0% { opacity: 0; transform: scale(1); }      /* เริ่มต้น: หายตัว */
+    20% { opacity: 0.1; transform: scale(1.05); } /* ปรากฏจางๆ (10%) และขยายตัวนิดๆ */
+    80% { opacity: 0.1; transform: scale(1.1); }  /* ค้างไว้ และขยายตัวช้าๆ */
+    100% { opacity: 0; transform: scale(1.15); }  /* สุดท้าย: เลือนหายไปจนหมด */
+}
+
+@keyframes fadeInBg {
+    from { opacity: 0; }
+    to { opacity: 0.05; } /* ต้องตรงกับค่า opacity ด้านบน */
+}
+
+/* --- ส่วนที่เพิ่มใหม่สำหรับคำคมลอย --- */
+.floating-quote {
+    position: absolute;
+    z-index: 9999;
+    color: rgba(0, 0, 0, 0.3);
+    font-weight: 800;
+    white-space: nowrap;
+    user-select: none;
+    pointer-events: auto !important;
+    cursor: pointer;
+    text-shadow: none;
+    opacity: 0;
+    animation: randomFloat var(--duration) linear forwards;
+    font-size: 2rem;    
+    font-weight: bold;     
+    color: rgba(0, 0, 0, 0.5); 
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8); /* เพิ่มเงาขาวหลังตัวหนังสือให้อ่านง่ายขึ้น */
+    transition: opacity 0.5s ease;
+}
+
+.floating-quote:hover {
+    color: rgba(0, 0, 0, 0.8); /* เข้มขึ้น */
+    font-weight: bold;     
+    transition: all 0.1s;
+}
+
+/* กำหนดการเคลื่อนที่: ลอยขึ้นและจางหาย */
+@keyframes randomFloat {
+    0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+    15% { opacity: 1; }
+    85% { opacity: 0.5; }
+    100% { opacity: 0; 
+        transform: translateY(-50vh); 
+    }
+}
+
+.art-frame img { width: 100%; height: 100%; object-fit: cover; }
+.art-container { flex-shrink: 0; }
+
+/* --- สไตล์ภาพพื้นหลังจางๆ (Artwork Background) --- */
+.background-artwork {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0; /* อยู่หลังสุด (ต่ำกว่า .welcome-text และ .exhibition-line) */
+    pointer-events: none; /* ไม่ให้คลิกโดน */
+    overflow: hidden; /* ไม่ให้รูปหลุดจอ */
+}
+
+/* ปรับแต่งรูปภาพข้างใน */
+.artwork-item {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100vw;   /* เต็มความกว้างจอ */
+    height: 100vh;  /* เต็มความสูงจอ */
+    object-fit: contain; /* บังคับให้รูปเต็มกรอบโดยไม่เสียสัดส่วน */
+    opacity: 0;      /* เริ่มต้นที่หายตัว */
+    animation: fadeAndHide 5s ease-in-out forwards; 
+}
+
+/* กำหนดการเคลื่อนที่: เลือนชัด -> เลือนหาย */
+@keyframes fadeAndHide {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(1);}
+    10% { opacity: 0.05; transform: translate(-50%, -50%) scale(1.02);}
+    90% { opacity: 0.05; transform: translate(-50%, -50%) scale(1.2);}
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15);}
+}
+
+#step1 button {
+    margin-top: 1px;
+    padding: 12px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0s;
+}
+
+#step1 button:hover {
+    background: #2980b9;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+#step1 img {
+    width: 120px; /* ปรับให้เล็กลงเพื่อให้วางคู่กันได้ในจอมือถือ */
+    height: auto !important;
+    margin: 5px;
+}
+
+/* บรรทัดสุดท้ายของไฟล์ */
+.gallery-hall::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* เงาสีดำฟุ้งจากขอบเข้าหาตรงกลาง */
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.2); 
+    pointer-events: none; 
+    z-index: 50; /* อยู่บนสุดทับทุกอย่าง */
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: #95a5a6; /* สีเทาเรียบๆ */
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 15px;
+    text-decoration: underline; /* ขีดเส้นใต้ให้รู้ว่าเป็นลิงก์กดได้ */
+    transition: 0.3s;
+    font-family: "Noto Sans Thai", sans-serif;
+}
+
+.btn-back:hover {
+    color: #34495e; /* สีเข้มขึ้นเวลาเอาเมาส์ชี้ */
+    transform: translateX(-5px); /* ขยับไปทางซ้ายนิดๆ ให้ดูเหมือนการย้อนกลับ */
+}
+
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+.click-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none; /* ไม่ให้ขัดขวางการคลิกรูป */
+}
+
+.art-frame:hover .click-hint {
+    opacity: 1;
+}
+
+/* คอนเทนเนอร์หลักของตัวอย่าง */
+.drawing-example-container {
+    margin-top: 25px;
+    padding: 15px;
+    background: rgba(255, 204, 51, 0.1); /* สีเหลืองจางๆ */
+    border-radius: 15px;
+    border: 1px dashed #FFCC33; /* เส้นประสีทอง */
+    text-align: center;
+}
+
+/* หัวข้อตัวอย่าง */
+.example-label {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* การจัดวางรูปกับข้อความข้างกัน */
+.example-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+/* สไตล์รูปตัวอย่าง */
+.img-example {
+    width: 120px; /* ขนาดรูปเล็กๆ */
+    height: 160px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 2px solid white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* ข้อความอธิบายข้างรูป */
+.example-text {
+    font-size: 0.85rem;
+    color: #555;
+    text-align: left;
+    line-height: 1.4;
+}
+@keyframes bounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); border-color: #FFCC33; }
+}
+
+/* ปรับให้ Input Group ดูเข้าที่ขึ้น */
+.input-group div {
+    width: 100%;
+}
+
+.artwork-item {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%; /* ขนาดใหญ่ๆ */
+    opacity: 0.05; /* จางมากเพื่อให้ไม่ทับข้อความ */
+    pointer-events: none; /* ห้ามคลิกโดนรูปนี้ */
+    z-index: -1; /* อยู่หลังข้อความลอย */
+    animation: fadeSlow 20s ease-in-out forwards;
+}
+
+@keyframes fadeSlow {
+    0% { opacity: 0; }
+    10% { opacity: 0.05; }
+    90% { opacity: 0.05; }
+    100% { opacity: 0; }
+}
+/* --- ส่วนตัวอย่างรูปภาพ --- */
+.example-box {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px dashed #ddd;
+    text-align: center;
+}
+
+.example-label {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.example-images {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.example-images img {
+    width: 85px !important; /* ย่อรูปตัวอย่างให้เล็กลงบนมือถือ */
+    height: 110px !important;
+    object-fit: cover;
+    border-radius: 8px;
+    opacity: 0.7;
+    border: 1px solid #eee;
+}
