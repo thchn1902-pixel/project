@@ -1,0 +1,87 @@
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Gallery 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Athiti:wght@400;600&family=Noto+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <audio id="bgMusic" loop>
+        <source src="sound1.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="gallery-hall">
+        <div id="bgArtworkRef" class="background-artwork"></div>
+        <div id="bgGalleryRef" class="background-gallery"></div>
+        
+        <div class="welcome-text">
+            <h1 class="handwriting">ก่อนเราจะลืมวิธีฝัน</h1>
+            <p>คุณยังจำได้ไหม ว่าตอนเด็กคุณอยากเป็นอะไร? แล้วตอนนี้คุณทำตามสัญญาได้หรือยัง?</p>
+            <p>จุดรวมความฝันวัยเด็กฝากฝันของคุณไว้กับเรา</p>
+        </div>
+        <div class="exhibition-line">
+        <div class="art-track" id="trackRef"></div>
+        </div>
+
+        <button class="btn-action" onclick="openModal()">+ สร้างผลงานของคุณ</button>
+    </div>
+
+    <div class="modal-exhibition" id="modalArt">
+    <div class="modal-content">
+        <button class="btn-close-modal" onclick="closeModal()">✕</button>
+            
+<div id="step1">
+    <h2 class="handwriting" style="text-align: center; font-size: 1.5rem; margin-bottom: 10px;">"โตขึ้นหนูอยากเป็น..."</h2>
+    
+    <div class="studio-container">
+        <div class="canvas-wrapper">
+            <canvas id="drawCanvas" width="300" height="400"></canvas>
+        </div>
+
+        <div class="studio-tools">
+            <div class="palette-row">
+                <div class="palette-item">
+                    <span>ปากกา</span>
+                    <div class="color-palette" id="penColors"></div>
+                </div>
+                <div class="palette-item">
+                    <span>สีถม</span>
+                    <div class="color-palette" id="fillColors"></div>
+                </div>
+            </div>
+            <button class="btn-tool-clear" onclick="clearCanvas()">✕ ล้างกระดาน</button>
+        </div>
+    </div>
+
+    <button class="btn-submit" onclick="goToStep(2)">บันทึกและถัดไป →</button>
+
+    <div class="example-mini-box">
+        <p style="font-size: 0.75rem; color: #888; margin: 10px 0 5px;">✨ ไอเดียการวาด</p>
+        <div style="display: flex; justify-content: center; gap: 8px;">
+            <img src="ตัวอย่าง1.png" style="width: 70px; height: 90px; border-radius: 5px; opacity: 0.7;">
+            <img src="ตัวอย่าง2.png" style="width: 70px; height: 90px; border-radius: 5px; opacity: 0.7;">
+        </div>
+    </div>
+</div>
+
+    <div id="step2" style="display: none;">
+    <h2 style="text-align: center;">ข้อมูลศิลปิน</h2>
+        <div id="previewArea" style="text-align: center; margin: 20px 0;"></div>
+        <div class="input-group">
+        <input type="text" id="nameInput" placeholder="เด็กคนนั้นอยากเป็น...">
+        <input type="text" id="quoteInput" placeholder="มีอะไรอยากบอกเด็กคนนั้นไหม?">
+        </div>
+        <div style="display: flex; gap: 10px;">
+        <button class="btn-back" onclick="goToStep(1)">ย้อนกลับ</button>
+        <button class="btn-submit" onclick="submitArt()">ส่งผลงานเข้าบอร์ด</button>
+        </div>
+        </div>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
